@@ -4,39 +4,17 @@ cachedir: .pytest_cache
 rootdir: /Users/tanushrinayak/code/tanushrin/07-ML-Ops/03-Automate-model-lifecycle/data-model-lifecycle/tests
 configfile: pytest_kitt.ini
 plugins: anyio-3.7.1
-collecting ... collected 6 items / 1 error
+collecting ... collected 10 items
 
-==================================== ERRORS ====================================
-__________________ ERROR collecting lifecycle/test_prefect.py __________________
-ImportError while importing test module '/Users/tanushrinayak/code/tanushrin/07-ML-Ops/03-Automate-model-lifecycle/data-model-lifecycle/tests/lifecycle/test_prefect.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-../../../../../.pyenv/versions/3.10.6/lib/python3.10/importlib/__init__.py:126: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-tests/lifecycle/test_prefect.py:6: in <module>
-    from taxifare.interface.workflow import *
-taxifare/interface/workflow.py:6: in <module>
-    from prefect import task, flow
-../../../../../.pyenv/versions/3.10.6/envs/taxifare-env/lib/python3.10/site-packages/prefect/__init__.py:25: in <module>
-    from prefect.states import State
-../../../../../.pyenv/versions/3.10.6/envs/taxifare-env/lib/python3.10/site-packages/prefect/states.py:14: in <module>
-    from prefect.client.schemas import State as State
-../../../../../.pyenv/versions/3.10.6/envs/taxifare-env/lib/python3.10/site-packages/prefect/client/schemas.py:6: in <module>
-    from prefect.server import schemas
-../../../../../.pyenv/versions/3.10.6/envs/taxifare-env/lib/python3.10/site-packages/prefect/server/__init__.py:1: in <module>
-    from . import models
-../../../../../.pyenv/versions/3.10.6/envs/taxifare-env/lib/python3.10/site-packages/prefect/server/models/__init__.py:1: in <module>
-    from . import (
-../../../../../.pyenv/versions/3.10.6/envs/taxifare-env/lib/python3.10/site-packages/prefect/server/models/block_documents.py:13: in <module>
-    from prefect.server import schemas
-../../../../../.pyenv/versions/3.10.6/envs/taxifare-env/lib/python3.10/site-packages/prefect/server/schemas/__init__.py:1: in <module>
-    from . import states, schedules, core, sorting, filters, responses, actions
-../../../../../.pyenv/versions/3.10.6/envs/taxifare-env/lib/python3.10/site-packages/prefect/server/schemas/states.py:13: in <module>
-    from prefect.server.utilities.schemas import DateTimeTZ, IDBaseModel, PrefectBaseModel
-../../../../../.pyenv/versions/3.10.6/envs/taxifare-env/lib/python3.10/site-packages/prefect/server/utilities/schemas.py:17: in <module>
-    from pydantic import BaseModel, Field, SecretField
-E   ImportError: cannot import name 'SecretField' from 'pydantic' (/Users/tanushrinayak/.pyenv/versions/3.10.6/envs/taxifare-env/lib/python3.10/site-packages/pydantic/__init__.py)
-=========================== short test summary info ============================
-ERROR tests/lifecycle/test_prefect.py
-!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
-=============================== 1 error in 3.52s ===============================
+tests/lifecycle/test_mlflow.py::TestMlflow::test_model_target_is_mlflow PASSED [ 10%]
+tests/lifecycle/test_mlflow.py::TestMlflow::test_mlflow_experiment_is_not_null PASSED [ 20%]
+tests/lifecycle/test_mlflow.py::TestMlflow::test_mlflow_model_name_is_not_null PASSED [ 30%]
+tests/lifecycle/test_mlflow.py::TestMlflow::test_mlflow_experiment_exists PASSED [ 40%]
+tests/lifecycle/test_mlflow.py::TestMlflow::test_mlflow_model_exists PASSED [ 50%]
+tests/lifecycle/test_mlflow.py::TestMlflow::test_mlflow_model_in_production PASSED [ 60%]
+tests/lifecycle/test_prefect.py::TestPrefect::test_prefect_flow_name_is_not_null PASSED [ 70%]
+tests/lifecycle/test_prefect.py::TestPrefect::test_prefect_log_level_is_warning PASSED [ 80%]
+tests/lifecycle/test_prefect.py::TestPrefect::test_prefect_tasks PASSED  [ 90%]
+tests/lifecycle/test_prefect.py::TestPrefect::test_prefect_flow PASSED   [100%]
+
+======================= 10 passed, 101 warnings in 7.22s =======================
