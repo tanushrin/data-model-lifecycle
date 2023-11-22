@@ -11,6 +11,7 @@ from taxifare.params import *
 import mlflow
 from mlflow.tracking import MlflowClient
 
+
 def save_results(params: dict, metrics: dict) -> None:
     """
     Persist params & metrics locally on the hard drive at
@@ -19,7 +20,12 @@ def save_results(params: dict, metrics: dict) -> None:
     - (unit 03 only) if MODEL_TARGET='mlflow', also persist them on MLflow
     """
     if MODEL_TARGET == "mlflow":
-        pass  # YOUR CODE HERE
+        # pass  # YOUR CODE HERE
+        if params is not None:
+            mlflow.log_params(params)
+        if metrics is not None:
+            mlflow.log_metrics(metrics)
+        print("✅ Results saved on mlflow")
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
 
@@ -31,7 +37,9 @@ def save_results(params: dict, metrics: dict) -> None:
 
     # Save metrics locally
     if metrics is not None:
-        metrics_path = os.path.join(LOCAL_REGISTRY_PATH, "metrics", timestamp + ".pickle")
+        metrics_path = os.path.join(
+            LOCAL_REGISTRY_PATH, "metrics", timestamp + ".pickle"
+        )
         with open(metrics_path, "wb") as file:
             pickle.dump(metrics, file)
 
@@ -56,7 +64,9 @@ def save_model(model: keras.Model = None) -> None:
     if MODEL_TARGET == "gcs":
         # 🎁 We give you this piece of code as a gift. Please read it carefully! Add a breakpoint if needed!
 
-        model_filename = model_path.split("/")[-1] # e.g. "20230208-161047.h5" for instance
+        model_filename = model_path.split("/")[
+            -1
+        ]  # e.g. "20230208-161047.h5" for instance
         client = storage.Client()
         bucket = client.bucket(BUCKET_NAME)
         blob = bucket.blob(f"models/{model_filename}")
@@ -67,7 +77,11 @@ def save_model(model: keras.Model = None) -> None:
         return None
 
     if MODEL_TARGET == "mlflow":
-        pass  # YOUR CODE HERE
+        # pass  # YOUR CODE HERE
+        mlflow.tensorflow.log_model(
+            model=model, artifact_path="model", registered_model_name=MLFLOW_MODEL_NAME
+        )
+        print("✅ Model saved to mlflow")
 
     return None
 
@@ -84,7 +98,9 @@ def load_model(stage="Production") -> keras.Model:
     """
 
     if MODEL_TARGET == "local":
-        print(Fore.BLUE + f"\nLoad latest model from local registry..." + Style.RESET_ALL)
+        print(
+            Fore.BLUE + f"\nLoad latest model from local registry..." + Style.RESET_ALL
+        )
 
         # Get the latest model version name by the timestamp on disk
         local_model_directory = os.path.join(LOCAL_REGISTRY_PATH, "models")
@@ -112,7 +128,9 @@ def load_model(stage="Production") -> keras.Model:
 
         try:
             latest_blob = max(blobs, key=lambda x: x.updated)
-            latest_model_path_to_save = os.path.join(LOCAL_REGISTRY_PATH, latest_blob.name)
+            latest_model_path_to_save = os.path.join(
+                LOCAL_REGISTRY_PATH, latest_blob.name
+            )
             latest_blob.download_to_filename(latest_model_path_to_save)
 
             latest_model = keras.models.load_model(latest_model_path_to_save)
@@ -130,11 +148,27 @@ def load_model(stage="Production") -> keras.Model:
 
         # Load model from MLflow
         model = None
-        pass  # YOUR CODE HERE
+        # pass  # YOUR CODE HERE
+
+        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+        client = MlflowClient()
+
+        try:
+            model_versions = client.get_latest_versions(
+                name=MLFLOW_MODEL_NAME, stages=[stage]
+            )
+            model_uri = model_versions[0].source
+            assert model_uri is not None
+        except:
+            print(f"\n❌ No model found with name {MLFLOW_MODEL_NAME} in stage {stage}")
+            return None
+
+        model = mlflow.tensorflow.load_model(model_uri=model_uri)
+
+        print("✅ model loaded from mlflow")
         return model
     else:
         return None
-
 
 
 def mlflow_transition_model(current_stage: str, new_stage: str) -> None:
@@ -149,17 +183,21 @@ def mlflow_transition_model(current_stage: str, new_stage: str) -> None:
     version = client.get_latest_versions(name=MLFLOW_MODEL_NAME, stages=[current_stage])
 
     if not version:
-        print(f"\n❌ No model found with name {MLFLOW_MODEL_NAME} in stage {current_stage}")
+        print(
+            f"\n❌ No model found with name {MLFLOW_MODEL_NAME} in stage {current_stage}"
+        )
         return None
 
     client.transition_model_version_stage(
         name=MLFLOW_MODEL_NAME,
         version=version[0].version,
         stage=new_stage,
-        archive_existing_versions=True
+        archive_existing_versions=True,
     )
 
-    print(f"✅ Model {MLFLOW_MODEL_NAME} (version {version[0].version}) transitioned from {current_stage} to {new_stage}")
+    print(
+        f"✅ Model {MLFLOW_MODEL_NAME} (version {version[0].version}) transitioned from {current_stage} to {new_stage}"
+    )
 
     return None
 
@@ -173,6 +211,7 @@ def mlflow_run(func):
         - params (dict, optional): Params to add to the run in MLflow. Defaults to None.
         - context (str, optional): Param describing the context of the run. Defaults to "Train".
     """
+
     def wrapper(*args, **kwargs):
         mlflow.end_run()
         mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
@@ -185,4 +224,5 @@ def mlflow_run(func):
         print("✅ mlflow_run auto-log done")
 
         return results
+
     return wrapper
